@@ -16,16 +16,39 @@ request('https://www.zugfinder.de/js/json_kbs.php?kbs=650', function (error, res
 
     // Add distance between start and destination points using Googles Distance Matrix API wrapped with the np google-distance.
 
+    let origins = [];
+    let destinations = [];
+    for (let i = 0; i < trains.length; i++) {
+        origins[i] = trains[i].lauf[0]
+        destinations[i] = trains[i].lauf[1]
+    }
+
+    //console.log(origins.toString());
+    //console.log(destinations.toString());
+
+
+    let apiUrl = `https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=${
+        origins.join("|").replace(/ /g, "+")
+        }&destinations=${
+        destinations.join("|").replace(/ /g, "+")
+        }&key=AIzaSyBnzzUkE5XQdRW_vJ41S1RL9khjFrJWWh4`;
+
+    console.log(apiUrl);
+
+    
+    request(apiUrl, (err, resp, body) => {
+
+        distanceData = JSON.parse(body);
+
+        if (distanceData.status == "OK") {
+            console.log(distanceData);
+        }
+        else{console.log(distanceData.status);}
+    });
+
+    
+    /*
     trains.forEach(train => {
-
-        let apiUrl = `https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=${
-            train.lauf[0].replace(" ", "+")
-            }&destinations=${
-            train.lauf[1].replace(" ", "+")
-            }&key=AIzaSyBnzzUkE5XQdRW_vJ41S1RL9khjFrJWWh4`;
-
-
-
         request(apiUrl, (err, resp, body) => {
 
             distanceData = JSON.parse(body);
@@ -40,10 +63,11 @@ request('https://www.zugfinder.de/js/json_kbs.php?kbs=650', function (error, res
                 next();
         });
     });
+    */
 
 });
 
 function next() {
     trainsWithLength = trainsWithLength.filter(train => train.entfernung);
-    console.log(trainsWithLength);
+    //console.log(trainsWithLength);
 }
