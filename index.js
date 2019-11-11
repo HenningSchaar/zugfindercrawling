@@ -1,7 +1,8 @@
 const request = require('request');
 const escape = require('remove-accents');
 
-let trainsWithLength = [];
+let originDistances = [];
+let destinationDistances = [];
 const stationLocation = "Riedstadt-Goddelau";
 
 request('https://www.zugfinder.de/js/json_kbs.php?kbs=650', function (error, response, body) {
@@ -44,5 +45,13 @@ request('https://www.zugfinder.de/js/json_kbs.php?kbs=650', function (error, res
 });
 
 function parseDistanceData(distanceData) {
-    console.log(distanceData);
+    //console.log(distanceData.rows[0].elements)
+    distanceData.rows[0].elements.forEach(originDistanceEntry => {
+        originDistances.push(originDistanceEntry.distance.value);
+    });
+    distanceData.rows.forEach(destinationDistanceEntry => {
+        destinationDistances.push(destinationDistanceEntry.elements[0].distance.value);
+    });
+    console.log(originDistances);
+    console.log(destinationDistances);
 }
