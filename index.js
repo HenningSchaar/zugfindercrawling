@@ -21,13 +21,9 @@ request('https://www.zugfinder.de/js/json_kbs.php?kbs=650', function (error, res
     let origins = [stationLocation];
     let destinations = [stationLocation];
     for (let i = 0; i < trains.length; i++) {
-        origins[i+1] = trains[i].lauf[0]
-        destinations[i+1] = trains[i].lauf[1]
+        origins[i + 1] = trains[i].lauf[0]
+        destinations[i + 1] = trains[i].lauf[1]
     }
-
-    console.log(origins.toString());
-    console.log(destinations.toString());
-
 
     let apiUrl = `https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&origins=${
         escape(origins.join("|").replace(/ /g, "+"))
@@ -42,30 +38,11 @@ request('https://www.zugfinder.de/js/json_kbs.php?kbs=650', function (error, res
         if (distanceData.status == "OK") {
             parseDistanceData(distanceData);
         }
-        else{console.log(distanceData.stat);}
+        else { console.log(distanceData.stat); }
     });
-
-    
-    /*
-    trains.forEach(train => {
-        request(apiUrl, (err, resp, body) => {
-
-            distanceData = JSON.parse(body);
-
-            if (distanceData.status == "OK") {
-                train.entfernung = distanceData.rows[0].elements[0].distance.value;
-            }
-
-            trainsWithLength.push(train);
-
-            if (trainsWithLength.length == trains.length)
-                next();
-        });
-    });
-    */
 
 });
 
 function parseDistanceData(distanceData) {
-    //console.log(distanceData);
+    console.log(distanceData);
 }
