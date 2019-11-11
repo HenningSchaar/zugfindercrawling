@@ -2,6 +2,7 @@ const request = require('request');
 const escape = require('remove-accents');
 
 let trainsWithLength = [];
+const stationLocation = "Riedstadt-Goddelau";
 
 request('https://www.zugfinder.de/js/json_kbs.php?kbs=650', function (error, response, body) {
     trainData = JSON.parse(body); //Parse incoming JSON
@@ -17,15 +18,15 @@ request('https://www.zugfinder.de/js/json_kbs.php?kbs=650', function (error, res
 
     // Add distance between start and destination points using Googles Distance Matrix API wrapped with the np google-distance.
 
-    let origins = [];
-    let destinations = [];
+    let origins = [stationLocation];
+    let destinations = [stationLocation];
     for (let i = 0; i < trains.length; i++) {
-        origins[i] = trains[i].lauf[0]
-        destinations[i] = trains[i].lauf[1]
+        origins[i+1] = trains[i].lauf[0]
+        destinations[i+1] = trains[i].lauf[1]
     }
 
-    //console.log(origins.toString());
-    //console.log(destinations.toString());
+    console.log(origins.toString());
+    console.log(destinations.toString());
 
 
     let apiUrl = `https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&origins=${
@@ -39,7 +40,7 @@ request('https://www.zugfinder.de/js/json_kbs.php?kbs=650', function (error, res
         distanceData = JSON.parse(body);
 
         if (distanceData.status == "OK") {
-            console.log(distanceData);
+            parseDistanceData(distanceData);
         }
         else{console.log(distanceData.stat);}
     });
@@ -65,7 +66,6 @@ request('https://www.zugfinder.de/js/json_kbs.php?kbs=650', function (error, res
 
 });
 
-function next() {
-    trainsWithLength = trainsWithLength.filter(train => train.entfernung);
-    //console.log(trainsWithLength);
+function parseDistanceData(distanceData) {
+    //console.log(distanceData);
 }
