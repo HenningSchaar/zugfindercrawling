@@ -1,4 +1,5 @@
 const request = require('request');
+const escape = require('remove-accents');
 
 let trainsWithLength = [];
 
@@ -27,15 +28,12 @@ request('https://www.zugfinder.de/js/json_kbs.php?kbs=650', function (error, res
     //console.log(destinations.toString());
 
 
-    let apiUrl = `https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=${
-        origins.join("|").replace(/ /g, "+")
+    let apiUrl = `https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&origins=${
+        escape(origins.join("|").replace(/ /g, "+"))
         }&destinations=${
-        destinations.join("|").replace(/ /g, "+")
+        escape(destinations.join("|").replace(/ /g, "+"))
         }&key=AIzaSyBnzzUkE5XQdRW_vJ41S1RL9khjFrJWWh4`;
 
-    console.log(apiUrl);
-
-    
     request(apiUrl, (err, resp, body) => {
 
         distanceData = JSON.parse(body);
@@ -43,7 +41,7 @@ request('https://www.zugfinder.de/js/json_kbs.php?kbs=650', function (error, res
         if (distanceData.status == "OK") {
             console.log(distanceData);
         }
-        else{console.log(distanceData.status);}
+        else{console.log(distanceData.stat);}
     });
 
     
