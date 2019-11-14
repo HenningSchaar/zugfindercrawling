@@ -1,13 +1,14 @@
 const request = require('request');
 const escape = require('remove-accents');
 
-var PORT = 9091;
-var HOST = '127.0.0.1';
-var dgram = require('dgram');
-var client = dgram.createSocket('udp4');
-
+const limit = [0, 1000];
 
 const stationLocation = "Riedstadt-Goddelau";
+
+const PORT = 9091;
+const HOST = '127.0.0.1';
+const dgram = require('dgram');
+const client = dgram.createSocket('udp4');
 
 function perform() {
 
@@ -19,7 +20,7 @@ function perform() {
         trainData = JSON.parse(body); //Parse incoming JSON
         trains = trainData.array; //convert train data to an array of trains
         trains.shift(); //remove first entry which for some reason is always empty
-        trains = trains.slice(0, 9);
+        trains = trains.slice(0, 10); //remove elements over index 10 to conform to API restrictions
 
         // Replace string which describes "lauf" with an array of the two train stations in question.
         trains = trains.map(train => {
@@ -61,7 +62,7 @@ function addDistanceData() {
             parseDistanceData(distanceData);
         }
         else { handleError("API Request failed." + "\n" + distanceData.status); }
-
+      
         setTimeout(perform, 50000);
     });
 }
@@ -69,13 +70,11 @@ function addDistanceData() {
 function parseDistanceData(distanceData) {
     let originDistances = [];
     let destinationDistances = [];
-    //console.log(distanceData.rows[0].elements)
-
+    
     distanceData.rows[0].elements.forEach(originDistanceEntry => {
         if (originDistanceEntry) {
             originDistances.push(originDistanceEntry.distance.value);
         } else { handleError("Couldn't read origin distance for train " + trains[i]) }
-
     });
     
     distanceData.rows.forEach(destinationDistanceEntry => {
@@ -96,12 +95,21 @@ function parseDistanceData(distanceData) {
 }
 
 function sendDataToMax(trains) {
+    let trainmessages = 0;
     trains.forEach((train, i) => {
         message = train.zugnr.split(" ")[0].replace(/\d/g, '') + " " + train.strecke + " " + train.zurueckGelegt
         client.send(message, 0, message.length, PORT, HOST, function (err, bytes) {
             if (err) throw err;
         });
     });
+    if (trainmessages > 0){
+        console.log("Sent " + trainmessages + " trains to max.")
+    }else{
+        console.log("\nNo trains nearby \n");
+        trains.forEach(train => {
+            console.log(train.zugnr + " " + train.ypos);
+        });
+    };
 }
 
 function handleError(error) {
