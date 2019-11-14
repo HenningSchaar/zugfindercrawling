@@ -72,13 +72,13 @@ function parseDistanceData(distanceData) {
     let destinationDistances = [];
     
     distanceData.rows[0].elements.forEach(originDistanceEntry => {
-        if (originDistanceEntry) {
+        if (originDistanceEntry.distance) {
             originDistances.push(originDistanceEntry.distance.value);
         } else { handleError("Couldn't read origin distance for train " + trains[i]) }
     });
     
     distanceData.rows.forEach(destinationDistanceEntry => {
-        if (destinationDistanceEntry) {
+        if (destinationDistanceEntry.elements[0].distance) {
             destinationDistances.push(destinationDistanceEntry.elements[0].distance.value);
         } else { handleError("Couldn't read destination distance for train " + trains[i]) }
     });
@@ -102,14 +102,6 @@ function sendDataToMax(trains) {
             if (err) throw err;
         });
     });
-    if (trainmessages > 0){
-        console.log("Sent " + trainmessages + " trains to max.")
-    }else{
-        console.log("\nNo trains nearby \n");
-        trains.forEach(train => {
-            console.log(train.zugnr + " " + train.ypos);
-        });
-    };
 }
 
 function handleError(error) {
