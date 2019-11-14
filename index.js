@@ -6,8 +6,7 @@ var HOST = '127.0.0.1';
 var dgram = require('dgram');
 var client = dgram.createSocket('udp4');
 
-let originDistances = [];
-let destinationDistances = [];
+
 const stationLocation = "Riedstadt-Goddelau";
 
 function perform() {
@@ -20,6 +19,7 @@ function perform() {
         trainData = JSON.parse(body); //Parse incoming JSON
         trains = trainData.array; //convert train data to an array of trains
         trains.shift(); //remove first entry which for some reason is always empty
+        trains = trains.slice(0, 9);
 
         // Replace string which describes "lauf" with an array of the two train stations in question.
         trains = trains.map(train => {
@@ -60,33 +60,44 @@ function addDistanceData() {
         if (distanceData.status == "OK") {
             parseDistanceData(distanceData);
         }
-        else { handleError("API Request failed." + "\n" + distanceData); }
+        else { handleError("API Request failed." + "\n" + distanceData.status); }
 
-        setTimeout(perform, 10000);
+        setTimeout(perform, 50000);
     });
 }
 
 function parseDistanceData(distanceData) {
+    let originDistances = [];
+    let destinationDistances = [];
     //console.log(distanceData.rows[0].elements)
+
     distanceData.rows[0].elements.forEach(originDistanceEntry => {
-        originDistances.push(originDistanceEntry.distance.value);
+        if (originDistanceEntry) {
+            originDistances.push(originDistanceEntry.distance.value);
+        } else { handleError("Couldn't read origin distance for train " + trains[i]) }
+
     });
+    
     distanceData.rows.forEach(destinationDistanceEntry => {
-        destinationDistances.push(destinationDistanceEntry.elements[0].distance.value);
+        if (destinationDistanceEntry) {
+            destinationDistances.push(destinationDistanceEntry.elements[0].distance.value);
+        } else { handleError("Couldn't read destination distance for train " + trains[i]) }
     });
+
     trains.forEach((train, i) => {
         distanceToStation = originDistances[i + 1];
         train.strecke = originDistances[i + 1] + destinationDistances[i + 1];
         train.zurueckGelegt = distanceToStation / train.strecke;
         train.zurueckGelegt = train.zurueckGelegt.toFixed(3);
     });
+
     console.log(trains);
     sendDataToMax(trains);
 }
 
 function sendDataToMax(trains) {
     trains.forEach((train, i) => {
-        message = train.zugnr.replace(" ", "") + " "+ train.strecke + " " + train.zurueckGelegt
+        message = train.zugnr.split(" ")[0].replace(/\d/g, '') + " " + train.strecke + " " + train.zurueckGelegt
         client.send(message, 0, message.length, PORT, HOST, function (err, bytes) {
             if (err) throw err;
         });
@@ -97,7 +108,5 @@ function handleError(error) {
     console.log(error);
     setTimeout(perform, 1000);
 }
-
-
 
 perform();
